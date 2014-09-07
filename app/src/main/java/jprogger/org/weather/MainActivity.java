@@ -56,9 +56,11 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
         if (state != null) {
             position = state.getInt("position");
             items = state.getParcelable("items");
-            pagerAdapter = new PagerAdapter(getFragmentManager(), items);
-            mViewPager.setAdapter(pagerAdapter);
-            mViewPager.setCurrentItem(position);
+            if (items != null) {
+                pagerAdapter = new PagerAdapter(getFragmentManager(), items);
+                mViewPager.setAdapter(pagerAdapter);
+                mViewPager.setCurrentItem(position);
+            }
         } else {
             refreshWeather();
         }

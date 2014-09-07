@@ -30,7 +30,7 @@ public final class ErrorHandlerBuilder {
         }
     }
 
-    public static class Http500ErrorHandler implements  ErrorHandler {
+    public static class Http500ErrorHandler implements ErrorHandler {
 
         @Override
         public void handleError(Context ctx, VolleyError error) {
@@ -49,13 +49,13 @@ public final class ErrorHandlerBuilder {
     }
 
     /**
-     *  Error handler responsible for routing error
-     *  depends on it's error code
+     * Error handler responsible for routing error
+     * depends on it's error code
      */
     class RouterErrorHandler implements ErrorHandler {
 
         @Override
-        public void handleError( Context ctx, VolleyError error) {
+        public void handleError(Context ctx, VolleyError error) {
             if (error == null) {
                 throw new IllegalArgumentException("ERROR can not be null");
             }
@@ -63,7 +63,11 @@ public final class ErrorHandlerBuilder {
                 throw new IllegalArgumentException("Context can not be null");
             }
             if (error.networkResponse != null) {
-                handlers.get(error.networkResponse.statusCode).handleError(ctx, error);
+                if (handlers.containsKey(error.networkResponse.statusCode)) {
+                    handlers.get(error.networkResponse.statusCode).handleError(ctx, error);
+                } else {
+                    new DefaultErrorHandler().handleError(ctx, error);
+                }
             } else {
                 handlers.get(NO_INTERNET_CONNECTION_ERROR).handleError(ctx, error);
             }
@@ -140,14 +144,14 @@ public final class ErrorHandlerBuilder {
         return routeHandler;
     }
 
-    private void checkNotNullOrThrow( ErrorHandler handler) {
+    private void checkNotNullOrThrow(ErrorHandler handler) {
         if (handler == null) {
             throw new IllegalArgumentException("Handler argument can not be NULL");
         }
     }
 
     private static void logError(VolleyError error) {
-        VolleyLog.e(LOG_TAG + ": "+ buildErrorString(error));
+        VolleyLog.e(LOG_TAG + ": " + buildErrorString(error));
     }
 
 
