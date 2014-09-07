@@ -1,149 +1,179 @@
 package jprogger.org.weather;
 
-import java.util.Locale;
-
 import android.app.Activity;
-import android.app.ActionBar;
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.support.v13.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
+import com.google.gson.Gson;
+
+import jprogger.org.weather.model.Items;
+import jprogger.org.weather.net.RestClient;
+import jprogger.org.weather.net.UrlBuilder;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements RetryActionFragment.RetryActionListener {
 
-    /**
-     * The {@link android.support.v4.view.PagerAdapter} that will provide
-     * fragments for each of the sections. We use a
-     * {@link FragmentPagerAdapter} derivative, which will keep every
-     * loaded fragment in memory. If this becomes too memory intensive, it
-     * may be best to switch to a
-     * {@link android.support.v13.app.FragmentStatePagerAdapter}.
-     */
-    SectionsPagerAdapter mSectionsPagerAdapter;
+    private static final String TAG = "Weather";
 
-    /**
-     * The {@link ViewPager} that will host the section contents.
-     */
-    ViewPager mViewPager;
+    private Items items;
+    private int position;
+    private ViewPager mViewPager;
+    private PagerAdapter pagerAdapter;
+
+    private ProgressFragment progressFragment;
+    private RetryActionFragment retryFragment;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle state) {
+        super.onCreate(state);
+        getActionBar().hide();
         setContentView(R.layout.main);
-
-
-
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+        mViewPager.setOffscreenPageLimit(2);
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    
-
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
-        }
-
-        @Override
-        public int getCount() {
-            // Show 3 total pages.
-            return 3;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            Locale l = Locale.getDefault();
-            switch (position) {
-                case 0:
-                    return getString(R.string.title_section1).toUpperCase(l);
-                case 1:
-                    return getString(R.string.title_section2).toUpperCase(l);
-                case 2:
-                    return getString(R.string.title_section3).toUpperCase(l);
             }
-            return null;
+
+            @Override
+            public void onPageSelected(int position) {
+                Log.d(TAG, "Selected position: " + position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        if (state != null) {
+            position = state.getInt("position");
+            items = state.getParcelable("items");
+            pagerAdapter = new PagerAdapter(getFragmentManager(), items);
+            mViewPager.setAdapter(pagerAdapter);
+            mViewPager.setCurrentItem(position);
+        } else {
+            refreshWeather();
         }
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
 
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
+    @Override
+    protected void onStop() {
+        super.onStop();
+        RestClient.cancelAllRequests(this, TAG);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("items", items);
+        outState.putInt("position", mViewPager.getCurrentItem());
+    }
+
+    @Override
+    public void onRetryAction() {
+        refreshWeather();
+    }
+
+    private void refreshWeather() {
+        toggleFragments(true, false);
+        StringRequest request = new RestClient.RequestBuilder()
+                .appendTag(TAG)
+                .appendUrl(new UrlBuilder()
+                        .withGroupCities()
+                        .withUnit(RestClient.Unit.METRIC)
+                        .appendCityId(RestClient.CityId.BERLIN)
+                        .appendCityId(RestClient.CityId.PARIS)
+                        .appendCityId(RestClient.CityId.LOS_ANGELES)
+                        .build())
+                .appendListener(new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        toggleFragments(false, true);
+                        VolleyLog.d("Response: " + response);
+                        items = new Gson().fromJson(response, Items.class);
+                        if (items.isSuccess()) {
+                            pagerAdapter = new PagerAdapter(getFragmentManager(), items);
+                            mViewPager.setAdapter(pagerAdapter);
+                        } else {
+                            toggleFragments(false, false);
+                            Toast.makeText(MainActivity.this, R.string.error_resource_not_found_message, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                })
+                .appendErrorListener(new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        toggleFragments(false, false);
+                        VolleyLog.e("Response: " + error.toString());
+                    }
+                })
+                .build();
+        RestClient.addRequestToQueue(this, request);
+    }
+
+    private void toggleFragments(boolean loading, boolean success) {
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
+        if (loading) {
+
+            resetViewPager();
+            removeRetryFragment(ft);
+            recreateProgressFragment(ft);
+            ft.commit();
+            return;
         }
-
-        public PlaceholderFragment() {
+        if (success) {
+            resetViewPager();
+            removeAllFragments(ft);
+            ft.commit();
+            return;
         }
+        resetViewPager();
+        removeProgressFragment(ft);
+        recreateRetryFragment(ft);
+        ft.commit();
+    }
 
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.main_fragment, container, false);
-            return rootView;
+    private void resetViewPager() {
+        mViewPager.setAdapter(null);
+    }
+
+    private void recreateProgressFragment(FragmentTransaction ft) {
+        progressFragment = new ProgressFragment();
+        ft.replace(R.id.container_id, progressFragment);
+    }
+
+    private void recreateRetryFragment(FragmentTransaction ft) {
+        retryFragment = new RetryActionFragment();
+        ft.replace(R.id.container_id, retryFragment);
+    }
+
+    private void removeProgressFragment(FragmentTransaction ft) {
+        if (progressFragment != null && progressFragment.isAdded()) {
+            ft.remove(progressFragment);
         }
     }
 
+    private void removeRetryFragment(FragmentTransaction ft) {
+        if (retryFragment != null && retryFragment.isAdded()) {
+            ft.remove(retryFragment);
+        }
+    }
+
+    private void removeAllFragments(FragmentTransaction ft) {
+        removeRetryFragment(ft);
+        removeProgressFragment(ft);
+    }
 }
