@@ -20,6 +20,15 @@ public class RestClient {
         getRequestQueue(context).add(request);
     }
 
+    public static void cancelAll(Context context) {
+        getRequestQueue(context).cancelAll(new RequestQueue.RequestFilter() {
+            @Override
+            public boolean apply(Request<?> request) {
+                return true;
+            }
+        });
+    }
+
     public static void cancelAllRequests(Context context, String tag) {
         getRequestQueue(context).cancelAll(tag);
     }

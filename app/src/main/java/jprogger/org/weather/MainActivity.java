@@ -25,7 +25,6 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
     private Items items;
     private int position;
     private ViewPager mViewPager;
-    private PagerAdapter pagerAdapter;
 
     private ProgressFragment progressFragment;
     private RetryActionFragment retryFragment;
@@ -53,35 +52,28 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
 
             }
         });
-        if (state != null) {
+        if (state != null && state.containsKey("position") && state.containsKey("items")) {
             position = state.getInt("position");
             items = state.getParcelable("items");
             if (items != null) {
-                pagerAdapter = new PagerAdapter(getFragmentManager(), items);
-                mViewPager.setAdapter(pagerAdapter);
-                mViewPager.setCurrentItem(position);
+                initViewPager();
+                return;
             }
-        } else {
-            refreshWeather();
         }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
+        refreshWeather();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        RestClient.cancelAllRequests(this, TAG);
+        RestClient.cancelAll(this);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable("items", items);
         outState.putInt("position", mViewPager.getCurrentItem());
+        outState.putParcelable("items", items);
     }
 
     @Override
@@ -107,12 +99,11 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
                         VolleyLog.d("Response: " + response);
                         items = new Gson().fromJson(response, Items.class);
                         if (items.isSuccess()) {
-                            pagerAdapter = new PagerAdapter(getFragmentManager(), items);
-                            mViewPager.setAdapter(pagerAdapter);
-                        } else {
-                            toggleFragments(false, false);
-                            Toast.makeText(MainActivity.this, R.string.error_resource_not_found_message, Toast.LENGTH_LONG).show();
+                            initViewPager();
+                            return;
                         }
+                        toggleFragments(false, false);
+                        Toast.makeText(MainActivity.this, R.string.error_resource_not_found_message, Toast.LENGTH_LONG).show();
                     }
                 })
                 .appendErrorListener(new Response.ErrorListener() {
@@ -150,6 +141,11 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
 
     private void resetViewPager() {
         mViewPager.setAdapter(null);
+    }
+
+    private void initViewPager() {
+        mViewPager.setAdapter(new PagerAdapter(getFragmentManager(), items));
+        mViewPager.setCurrentItem(position);
     }
 
     private void recreateProgressFragment(FragmentTransaction ft) {
