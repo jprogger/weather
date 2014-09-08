@@ -28,7 +28,7 @@ public class UrlBuilder {
     }
 
     public UrlBuilder withGroupCities() {
-         uri = uri.buildUpon().appendPath("group").build();
+        uri = uri.buildUpon().appendPath("group").build();
         return this;
     }
 

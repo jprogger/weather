@@ -37,6 +37,9 @@ public class WeatherFragment extends Fragment {
     private Item item;
     private PullToRefreshLayout mPullToRefreshLayout;
 
+    public WeatherFragment() {
+    }
+
     public static WeatherFragment newInstance(Item item, int color) {
         WeatherFragment fragment = new WeatherFragment();
         Bundle args = new Bundle();
@@ -45,8 +48,6 @@ public class WeatherFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-
-    public WeatherFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -140,7 +141,7 @@ public class WeatherFragment extends Fragment {
         TextView currentTempView = (TextView) getView().findViewById(R.id.current_temp_text);
         currentTempView.setTypeface(Typeface.createFromAsset(getActivity().getAssets(), "fonts/Roboto-Thin.ttf"));
         currentTempView.setText(new StringBuilder()
-                .append((int)item.main.temp)
+                .append((int) item.main.temp)
                 .append(" ")
                 .append("\u00B0")
                 .append("C")

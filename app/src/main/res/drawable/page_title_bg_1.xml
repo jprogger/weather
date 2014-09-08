@@ -4,6 +4,6 @@
     android:shape="rectangle">
     <size
         android:width="1000dp"
-        android:height="2dp"/>
-    <solid android:color="@color/page_bg_1"/>
+        android:height="2dp" />
+    <solid android:color="@color/page_bg_1" />
 </shape>

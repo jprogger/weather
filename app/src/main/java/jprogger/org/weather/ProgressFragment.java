@@ -11,7 +11,7 @@ public class ProgressFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.indeterminate_progress_with_bottom_label, null);
+        View rootView = inflater.inflate(R.layout.progress_fragment, null);
         rootView.setBackgroundColor(getResources().getColor(R.color.page_bg_1));
         return rootView;
     }

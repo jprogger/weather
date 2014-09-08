@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.android.volley.Response;
@@ -34,7 +32,7 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         getActionBar().hide();
-        setContentView(R.layout.main);
+        setContentView(R.layout.main_layout);
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setOffscreenPageLimit(2);
         if (state != null && state.containsKey("position") && state.containsKey("items")) {

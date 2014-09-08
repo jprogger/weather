@@ -5,25 +5,30 @@ import android.os.Parcelable;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-
 public class Items implements Parcelable {
 
+    public static final Creator<Items> CREATOR = new Creator<Items>() {
+        @Override
+        public Items createFromParcel(Parcel source) {
+            return new Items(source);
+        }
+
+        @Override
+        public Items[] newArray(int size) {
+            return new Items[size];
+        }
+    };
     @SerializedName("cnt")
     public int count;
-
     @SerializedName("cod")
     public int code;
-
     @SerializedName("message")
     public String message;
-
     @SerializedName("list")
     public Item[] list = new Item[]{};
 
-    public Items() {}
+    public Items() {
+    }
 
     private Items(Parcel parcel) {
         count = parcel.readInt();
@@ -48,16 +53,4 @@ public class Items implements Parcelable {
         dest.writeString(message);
         dest.writeTypedArray(list, flags);
     }
-
-    public static final Creator<Items> CREATOR = new Creator<Items>() {
-        @Override
-        public Items createFromParcel(Parcel source) {
-            return new Items(source);
-        }
-
-        @Override
-        public Items[] newArray(int size) {
-            return new Items[size];
-        }
-    };
 }

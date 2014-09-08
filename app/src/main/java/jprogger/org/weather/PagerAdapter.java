@@ -25,7 +25,7 @@ public class PagerAdapter extends FragmentPagerAdapter {
         return items.count;
     }
 
-    public int getColor(int position){
+    public int getColor(int position) {
         switch (position) {
             case 0:
                 return R.color.page_bg_1;
