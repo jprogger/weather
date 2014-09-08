@@ -5,6 +5,7 @@ import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.android.volley.Response;
@@ -36,22 +37,6 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
         setContentView(R.layout.main);
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setOffscreenPageLimit(2);
-        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                Log.d(TAG, "Selected position: " + position);
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
         if (state != null && state.containsKey("position") && state.containsKey("items")) {
             position = state.getInt("position");
             items = state.getParcelable("items");
@@ -120,7 +105,6 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
     private void toggleFragments(boolean loading, boolean success) {
         FragmentTransaction ft = getFragmentManager().beginTransaction();
         if (loading) {
-
             resetViewPager();
             removeRetryFragment(ft);
             recreateProgressFragment(ft);

@@ -2,12 +2,11 @@ package jprogger.org.weather;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.os.Parcelable;
-import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v13.app.FragmentPagerAdapter;
 
 import jprogger.org.weather.model.Items;
 
-public class PagerAdapter extends FragmentStatePagerAdapter {
+public class PagerAdapter extends FragmentPagerAdapter {
 
     private Items items;
 
@@ -18,7 +17,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        return WeatherFragment.newInstance(items.list.get(position), getColor(position));
+        return WeatherFragment.newInstance(items.list[position], getColor(position));
     }
 
     @Override

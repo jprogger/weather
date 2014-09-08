@@ -6,6 +6,8 @@ import android.os.Parcelable;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class Items implements Parcelable {
 
@@ -19,12 +21,15 @@ public class Items implements Parcelable {
     public String message;
 
     @SerializedName("list")
-    public ArrayList<Item> list = new ArrayList<Item>();
+    public Item[] list = new Item[]{};
 
     public Items() {}
 
     private Items(Parcel parcel) {
-
+        count = parcel.readInt();
+        code = parcel.readInt();
+        message = parcel.readString();
+        parcel.readTypedArray(list, Item.CREATOR);
     }
 
     public boolean isSuccess() {
@@ -38,7 +43,10 @@ public class Items implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-
+        dest.writeInt(count);
+        dest.writeInt(code);
+        dest.writeString(message);
+        dest.writeTypedArray(list, flags);
     }
 
     public static final Creator<Items> CREATOR = new Creator<Items>() {

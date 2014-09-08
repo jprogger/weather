@@ -3,7 +3,6 @@ package jprogger.org.weather.net;
 import android.net.Uri;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class UrlBuilder {
 

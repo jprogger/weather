@@ -40,7 +40,16 @@ public class Item implements Parcelable {
     public Item() {}
 
     private Item(Parcel parcel) {
-
+        id = parcel.readLong();
+        code = parcel.readInt();
+        name = parcel.readString();
+        message = parcel.readString();
+        dateTime = parcel.readLong();
+        main = parcel.readParcelable(Main.class.getClassLoader());
+        wind = parcel.readParcelable(Wind.class.getClassLoader());
+        system = parcel.readParcelable(System.class.getClassLoader());
+        parcel.readTypedArray(weathers, Weather.CREATOR);
+        coordinates = parcel.readParcelable(Coordinates.class.getClassLoader());
     }
 
     public boolean isSuccess() {
@@ -54,7 +63,16 @@ public class Item implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-
+        dest.writeLong(id);
+        dest.writeInt(code);
+        dest.writeString(name);
+        dest.writeString(message);
+        dest.writeLong(dateTime);
+        dest.writeParcelable(main, flags);
+        dest.writeParcelable(wind, flags);
+        dest.writeParcelable(system, flags);
+        dest.writeTypedArray(weathers, flags);
+        dest.writeParcelable(coordinates, flags);
     }
 
     public static final Creator<Item> CREATOR = new Creator<Item>() {
