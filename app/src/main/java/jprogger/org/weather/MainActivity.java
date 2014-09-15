@@ -1,9 +1,16 @@
 package jprogger.org.weather;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.FragmentTransaction;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
@@ -24,6 +31,7 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
     private Items items;
     private int position;
     private ViewPager mViewPager;
+    private PagerAdapter pagerAdapter;
 
     private ProgressFragment progressFragment;
     private RetryActionFragment retryFragment;
@@ -31,9 +39,38 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        getActionBar().hide();
         setContentView(R.layout.main_layout);
         mViewPager = (ViewPager) findViewById(R.id.pager);
+        mViewPager.setPageTransformer(false, new ViewPager.PageTransformer() {
+            @Override
+            public void transformPage(View view, float position) {
+                int pageWidth = view.getWidth();
+
+                if (position < -1) { // [-Infinity,-1)
+                    // This page is way off-screen to the left.
+                    view.setAlpha(0);
+                }
+                // [-1,1]
+                else if (position <= 1) {
+                    TextView locationView = (TextView) view.findViewById(R.id.location_text);
+                    TextView currentTempView = (TextView) view.findViewById(R.id.current_temp_text);
+
+                    TextView conditionView = (TextView) view.findViewById(R.id.condition_view);
+                    TextView humidityView = (TextView) view.findViewById(R.id.humidity);
+
+                    humidityView.setTranslationX((position) * (pageWidth / 6));
+                    conditionView.setTranslationX((position) * (pageWidth / 6));
+
+                    locationView.setTranslationX((position) * (pageWidth / 9));
+                    currentTempView.setTranslationX((position) * (pageWidth / 3));
+                    view.setAlpha(1);
+
+                } else { // (1,+Infinity]
+                    // This page is way off-screen to the right.
+                    view.setAlpha(0);
+                }
+            }
+        });
         mViewPager.setOffscreenPageLimit(2);
         if (state != null && state.containsKey("position") && state.containsKey("items")) {
             position = state.getInt("position");
@@ -126,7 +163,8 @@ public class MainActivity extends Activity implements RetryActionFragment.RetryA
     }
 
     private void initViewPager() {
-        mViewPager.setAdapter(new PagerAdapter(getFragmentManager(), items));
+        pagerAdapter = new PagerAdapter(getFragmentManager(), items);
+        mViewPager.setAdapter(pagerAdapter);
         mViewPager.setCurrentItem(position);
     }
 

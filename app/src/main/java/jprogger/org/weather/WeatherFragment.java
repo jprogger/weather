@@ -3,6 +3,7 @@ package jprogger.org.weather;
 
 import android.app.Fragment;
 import android.graphics.Typeface;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
